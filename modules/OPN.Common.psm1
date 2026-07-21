@@ -25,6 +25,12 @@ function Get-OPNEdition {
     [pscustomobject]@{ EditionID = $ed; IsPro = ($ed -match 'Professional|Enterprise|Education|Business') }
 }
 
+function Get-OPNAdminGroup {
+    # Nome do grupo local "Administrators" muda por idioma do Windows (ex.: "Administradores"
+    # em pt-BR). O SID S-1-5-32-544 e fixo em qualquer idioma - resolvemos o nome por ele.
+    (Get-LocalGroup -SID 'S-1-5-32-544').Name
+}
+
 function Set-OPNReg {
     param(
         [Parameter(Mandatory)][string]$Path,
@@ -81,7 +87,10 @@ function Invoke-OPNPerUserHive {
     }
     # Sessao atual (quem esta executando o setup):
     $me = $env:USERNAME
-    if ($me -notin $ExcludeUsers) { & $Action 'Registry::HKEY_CURRENT_USER' $me }
+    if ($me -notin $ExcludeUsers) {
+        try { & $Action 'Registry::HKEY_CURRENT_USER' $me }
+        catch { Write-OPNLog "  perfil $me (sessao atual): $($_.Exception.Message)" 'WARN' }
+    }
 }
 
 function Export-OPNReport {
@@ -106,5 +115,5 @@ function Export-OPNReport {
     return $report
 }
 
-Export-ModuleMember -Function Start-OPNLog, Write-OPNLog, Get-OPNEdition, Set-OPNReg,
+Export-ModuleMember -Function Start-OPNLog, Write-OPNLog, Get-OPNEdition, Get-OPNAdminGroup, Set-OPNReg,
     Invoke-OPNStep, Invoke-OPNPerUserHive, Export-OPNReport

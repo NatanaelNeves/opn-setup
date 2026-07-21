@@ -4,11 +4,11 @@
 .DESCRIPTION
   Le config\settings.json, detecta a edicao e executa todos os modulos.
   Idempotente: pode rodar varias vezes; reutilizado pela manutencao diaria.
-.PARAMETER ComputerName    Nome no padrao OPN-UF-NNNN.
+.PARAMETER ComputerName    Nome no padrao OPN-UF-CODIGO.
 .PARAMETER AdminPassword   Senha padrao da TI (SecureString). Se omitida, e solicitada.
 .PARAMETER MaintenanceMode Execucao silenciosa (usada pela tarefa agendada).
 .EXAMPLE
-  .\OPN-Setup.ps1 -ComputerName OPN-CE-0042
+  .\OPN-Setup.ps1 -ComputerName OPN-CE-PGG1
   .\OPN-Setup.ps1 -MaintenanceMode
 #>
 #Requires -RunAsAdministrator

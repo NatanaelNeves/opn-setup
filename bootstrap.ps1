@@ -8,7 +8,7 @@
     irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
   Com parametros:
     $b = irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
-    & ([scriptblock]::Create($b)) -ComputerName OPN-CE-0042
+    & ([scriptblock]::Create($b)) -ComputerName OPN-CE-PGG1
 #>
 param([string]$ComputerName)
 $ErrorActionPreference = 'Stop'

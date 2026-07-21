@@ -19,7 +19,7 @@ PowerShell **como Administrador**:
 Set-ExecutionPolicy Bypass -Scope Process -Force
 irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
 ```
-Informe nome `OPN-UF-NNNN` e a senha padrão da TI quando solicitado.
+Informe nome `OPN-UF-CÓDIGO` (ex.: `OPN-CE-PGG1`) e a senha padrão da TI quando solicitado.
 Revise `C:\OPN\Logs\setup-report.json`.
 
 ## 4. Pós-setup

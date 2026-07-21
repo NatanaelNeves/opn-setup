@@ -23,18 +23,19 @@ function Set-OPNLocalAdmin {
         Set-LocalUser -Name $UserName -Password $Password
         Write-OPNLog "  senha de $UserName atualizada"
     }
-    $isMember = Get-LocalGroupMember -Group 'Administrators' -ErrorAction SilentlyContinue |
+    $adminGroup = Get-OPNAdminGroup
+    $isMember = Get-LocalGroupMember -Group $adminGroup -ErrorAction SilentlyContinue |
                 Where-Object { $_.Name -like "*\$UserName" }
-    if (-not $isMember) { Add-LocalGroupMember -Group 'Administrators' -Member $UserName }
+    if (-not $isMember) { Add-LocalGroupMember -Group $adminGroup -Member $UserName }
 }
 
 function Set-OPNComputerName {
     param([string]$Name, [Parameter(Mandatory)][string]$Pattern,
           [bool]$Ask = $true, [switch]$NonInteractive)
     if ($NonInteractive) { return }
-    if (-not $Name -and $Ask) { $Name = Read-Host 'Nome da maquina (ex.: OPN-CE-0042)' }
+    if (-not $Name -and $Ask) { $Name = Read-Host 'Nome da maquina (ex.: OPN-CE-PGG1)' }
     if (-not $Name) { Write-OPNLog '  nome nao informado - etapa pulada' 'WARN'; return }
-    if ($Name -notmatch $Pattern) { throw "nome '$Name' fora do padrao OPN-UF-NNNN" }
+    if ($Name -notmatch $Pattern) { throw "nome '$Name' fora do padrao OPN-UF-CODIGO" }
     if ($env:COMPUTERNAME -ieq $Name) { Write-OPNLog '  nome ja correto'; return }
     Rename-Computer -NewName $Name -Force
     Write-OPNLog '  nome sera aplicado no proximo reinicio'
@@ -59,10 +60,14 @@ function Set-OPNLanguage {
     param($Windows)
     if (-not $Windows.configureLanguage) { Write-OPNLog '  configureLanguage = false'; return }
     $lang = $Windows.language
-    Set-WinUserLanguageList $lang -Force
-    Set-WinSystemLocale $lang
-    if ($lang -eq 'pt-BR') { Set-WinHomeLocation -GeoId 32 }
-    Set-TimeZone $Windows.timeZone
+    try { Set-WinUserLanguageList $lang -Force } catch { Write-OPNLog "  idioma: $($_.Exception.Message)" 'WARN' }
+    try { Set-WinSystemLocale $lang } catch { Write-OPNLog "  localidade: $($_.Exception.Message)" 'WARN' }
+    if ($lang -eq 'pt-BR') {
+        try { Set-WinHomeLocation -GeoId 32 } catch { Write-OPNLog "  regiao: $($_.Exception.Message)" 'WARN' }
+    }
+    # Em algumas imagens de Windows reduzidas (ex.: notebooks de laboratorio/escola) o ID
+    # do fuso pode estar ausente da base local; nao deve derrubar o resto da configuracao.
+    try { Set-TimeZone $Windows.timeZone } catch { Write-OPNLog "  fuso horario: $($_.Exception.Message)" 'WARN' }
     try { Set-Culture $lang } catch { Write-OPNLog '  Set-Culture indisponivel nesta sessao' 'WARN' }
 }
 

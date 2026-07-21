@@ -6,7 +6,7 @@
 3. Commit/push. Em até 24h a manutenção diária instala/atualiza em todas.
 
 ## App para uma máquina específica
-`applications.perMachine`: `"OPN-CE-0042": ["OBSProject.OBSStudio"]` → suba version → commit.
+`applications.perMachine`: `"OPN-CE-PGG1": ["OBSProject.OBSStudio"]` → suba version → commit.
 
 ## Instalação pontual (via AnyDesk)
 UAC → `opn-admin` + senha; ou `winget install --id <ID> --silent` num PowerShell elevado.

@@ -22,7 +22,7 @@ irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
 Com nome:
 ```powershell
 $b = irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
-& ([scriptblock]::Create($b)) -ComputerName OPN-CE-0042
+& ([scriptblock]::Create($b)) -ComputerName OPN-CE-PGG1
 ```
 O setup pede a **senha padrão da TI** do `opn-admin`, faz tudo e gera
 `C:\OPN\Logs\setup-report.json`. **Reinicie ao final.**
@@ -47,7 +47,7 @@ Decisão da OPN: **uma senha padrão** para o `opn-admin` em toda a frota
 ## Instalar um programa para um usuário específico
 - **Pontual:** via AnyDesk, no UAC digite `opn-admin` + senha, ou `winget install --id X`.
 - **Persistente (sobrevive a formatação):** em `applications.perMachine` adicione
-  `"OPN-CE-0042": ["OBSProject.OBSStudio"]`, suba a `version`, commit. Instala sozinho.
+  `"OPN-CE-PGG1": ["OBSProject.OBSStudio"]`, suba a `version`, commit. Instala sozinho.
 
 ## Dia a dia (mudanças na frota)
 Edite o repositório e **aumente `version`** no settings.json → em até 24h todas as

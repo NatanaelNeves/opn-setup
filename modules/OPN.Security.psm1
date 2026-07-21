@@ -7,14 +7,15 @@ function Set-OPNStandardUsers {
     # A conta temporaria de setup permanece admin ate ser removida no proximo boot.
     $keep = @($AdminAccount, 'Administrator', 'Administrador')
     if ($TemporarySetupUser) { $keep += $TemporarySetupUser }
-    $members = Get-LocalGroupMember -Group 'Administrators' -ErrorAction SilentlyContinue
+    $adminGroup = Get-OPNAdminGroup
+    $members = Get-LocalGroupMember -Group $adminGroup -ErrorAction SilentlyContinue
     foreach ($m in $members) {
         $short = $m.Name.Split('\')[-1]
         if ($short -in $keep) { continue }
         if ($m.ObjectClass -eq 'Group') { continue }
         if ($m.PrincipalSource -eq 'AzureAD' -and $short -match '^(admin|ti)') { continue }
         try {
-            Remove-LocalGroupMember -Group 'Administrators' -Member $m.Name -ErrorAction Stop
+            Remove-LocalGroupMember -Group $adminGroup -Member $m.Name -ErrorAction Stop
             Write-OPNLog "  rebaixado a usuario padrao: $($m.Name)"
         } catch { Write-OPNLog "  nao rebaixou $($m.Name): $($_.Exception.Message)" 'WARN' }
     }

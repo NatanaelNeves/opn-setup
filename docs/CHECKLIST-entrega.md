@@ -2,7 +2,7 @@
 
 Máquina: OPN-____-______   Colaborador: __________________  Data: ___/___/____
 
-- [ ] Nome no padrão OPN-UF-NNNN (bate com etiqueta física e inventário)
+- [ ] Nome no padrão OPN-UF-CÓDIGO (bate com etiqueta física e inventário)
 - [ ] Windows Update sem pendências críticas
 - [ ] OPN Setup sem erros (`C:\OPN\Logs\setup-report.json` revisado)
 - [ ] Conta do colaborador é USUÁRIO PADRÃO (teste: instalar algo → UAC pede senha)
