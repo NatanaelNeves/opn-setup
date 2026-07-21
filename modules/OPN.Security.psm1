@@ -1,12 +1,11 @@
 # OPN.Security.psm1 - Usuarios padrao, UAC, Defender, Firewall e BitLocker.
 
 function Set-OPNStandardUsers {
-    param([Parameter(Mandatory)]$Security, [Parameter(Mandatory)][string]$AdminAccount,
-          [string]$TemporarySetupUser)
+    param([Parameter(Mandatory)]$Security, [Parameter(Mandatory)][string]$AdminAccount)
     if (-not $Security.removeUsersFromAdministrators) { Write-OPNLog '  removeUsersFromAdministrators = false'; return }
-    # A conta temporaria de setup permanece admin ate ser removida no proximo boot.
-    $keep = @($AdminAccount, 'Administrator', 'Administrador')
-    if ($TemporarySetupUser) { $keep += $TemporarySetupUser }
+    # Quem estiver rodando o setup agora fica admin ate o proximo boot (quando perfis
+    # sobrando, incluindo o dele, sao removidos por Remove-OPNStaleProfiles).
+    $keep = @($AdminAccount, $env:USERNAME, 'Administrator', 'Administrador')
     $adminGroup = Get-OPNAdminGroup
     $members = Get-LocalGroupMember -Group $adminGroup -ErrorAction SilentlyContinue
     foreach ($m in $members) {

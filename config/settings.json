@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.0.4",
 
   "organization": {
     "name": "O Pequeno Nazareno",
@@ -9,9 +9,7 @@
     "tenantId": "",
     "domain": "",
     "adminAccount": "opn-admin",
-    "generateRandomAdminPassword": false,
-    "removeTemporarySetupUser": true,
-    "temporarySetupUser": ""
+    "generateRandomAdminPassword": false
   },
 
   "repository": {

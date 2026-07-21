@@ -29,3 +29,8 @@ A manutenção diária reaplica políticas e branding. Forçar agora:
 
 ## Colaborador desligado (offboarding)
 Bloquear conta M365 no dia; na devolução, Redefinir este PC > Remover tudo e reimplantar.
+
+## Máquina passa para outro colaborador (sem reinstalar)
+Logue como `opn-admin`, va em `C:\OPN\Repository` e rode `.\New-OPNUser.ps1` de novo
+com o nome da nova pessoa. A conta anterior (e qualquer outra que tenha sobrado) e
+removida no proximo boot, com backup local previo em `C:\OPN\ProfileBackups\`.

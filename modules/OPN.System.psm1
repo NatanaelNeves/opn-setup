@@ -1,4 +1,5 @@
-# OPN.System.psm1 - Conta admin (senha unica), nome, energia, idioma, Explorer, conta temporaria.
+# OPN.System.psm1 - Conta admin (senha unica), nome, energia, idioma, Explorer,
+# conta do colaborador e limpeza de perfis antigos.
 
 function Set-OPNLocalAdmin {
     param(
@@ -95,22 +96,70 @@ function Set-OPNExplorerDefaults {
     }
 }
 
-function Remove-OPNTemporarySetupUser {
-    # Agenda a remocao da conta temporaria de setup no proximo boot (SYSTEM),
-    # pois nao da para apagar a conta em uso na sessao atual.
-    param([string]$TempUser, [string]$AdminAccount)
-    if ([string]::IsNullOrWhiteSpace($TempUser)) { Write-OPNLog '  nenhuma conta temporaria informada'; return }
-    if ($TempUser -ieq $AdminAccount) { throw 'conta temporaria nao pode ser a conta admin da TI' }
-    if (-not (Get-LocalUser $TempUser -ErrorAction SilentlyContinue)) {
-        Write-OPNLog "  conta '$TempUser' nao existe"; return
+function New-OPNColaboradorAccount {
+    # Cria a conta local de quem vai usar esta maquina (Fase 2 - entrega, via
+    # New-OPNUser.ps1). Nao roda como parte do preparo (Fase 1: OPN-Setup.ps1),
+    # porque nesse momento a TI ainda nao sabe quem vai receber a maquina.
+    param(
+        [Parameter(Mandatory)][string]$UserName,
+        [string]$FullName,
+        [switch]$IsAdmin
+    )
+    if (Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue) {
+        throw "conta '$UserName' ja existe"
     }
-    $cmd = "net user `"$TempUser`" /delete & rmdir /s /q `"C:\Users\$TempUser`" & schtasks /delete /tn OPN-RemoveTempUser /f"
-    $action  = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c $cmd"
+    $tempPwd = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 14 | ForEach-Object { [char]$_ })
+    $sec = ConvertTo-SecureString $tempPwd -AsPlainText -Force
+    $desc = if ($FullName) { "Colaborador OPN - $FullName" } else { 'Colaborador - conta padrao OPN' }
+    $params = @{ Name = $UserName; Password = $sec; Description = $desc; AccountNeverExpires = $true }
+    if ($FullName) { $params['FullName'] = $FullName }
+    New-LocalUser @params | Out-Null
+    if ($IsAdmin) { Add-LocalGroupMember -Group (Get-OPNAdminGroup) -Member $UserName }
+    try {
+        $obj = [adsi]"WinNT://$env:COMPUTERNAME/$UserName,user"
+        $obj.PasswordExpired = 1
+        $obj.SetInfo()
+    } catch { Write-OPNLog "  nao marcou troca de senha obrigatoria: $($_.Exception.Message)" 'WARN' }
+    Write-OPNLog "  conta '$UserName' criada (usuario $(if($IsAdmin){'administrador'}else{'padrao'}))"
+    [pscustomobject]@{ UserName = $UserName; TempPassword = $tempPwd }
+}
+
+function Remove-OPNStaleProfiles {
+    # Padronizacao: todo perfil local que NAO for a conta da TI nem a conta do
+    # colaborador definida nesta execucao e tratado como sobra (conta temporaria de
+    # setup, aluno/usuario antigo etc.) e agendado para remocao no proximo boot -
+    # inclusive o perfil que estiver rodando este script agora, que so pode ser
+    # apagado depois que a sessao dele terminar. Antes de apagar, copia
+    # Desktop/Documentos/Imagens/Downloads para C:\OPN\ProfileBackups\<perfil>\,
+    # pois sem organization.tenantId nao ha backup automatico via OneDrive.
+    param([Parameter(Mandatory)][string]$AdminAccount, [string]$KeepUser)
+    $keep = @($AdminAccount, $KeepUser, 'Administrator', 'Administrador') | Where-Object { $_ }
+    $skip = @('Default', 'Public', 'All Users', 'Default User') + $keep
+    $stale = Get-ChildItem 'C:\Users' -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notin $skip -and $_.Name -notmatch '^defaultuser\d+$' }
+    if (-not $stale) { Write-OPNLog '  nenhum perfil sobrando para remover'; return }
+
+    $backupRoot = 'C:\OPN\ProfileBackups'
+    $cmds = @()
+    foreach ($p in $stale) {
+        Write-OPNLog "  perfil marcado para remocao no proximo boot: $($p.Name)"
+        foreach ($folder in 'Desktop', 'Documents', 'Imagens', 'Pictures', 'Downloads') {
+            $src = Join-Path $p.FullName $folder
+            if (Test-Path $src) {
+                $cmds += "robocopy `"$src`" `"$backupRoot\$($p.Name)\$folder`" /E /R:1 /W:1 >nul"
+            }
+        }
+        $cmds += "net user `"$($p.Name)`" /delete"
+        $cmds += "rmdir /s /q `"$($p.FullName)`""
+    }
+    $cmds += 'schtasks /delete /tn OPN-RemoveStaleProfiles /f'
+    $action  = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument "/c $($cmds -join ' & ')"
     $trigger = New-ScheduledTaskTrigger -AtStartup
-    Register-ScheduledTask -TaskName 'OPN-RemoveTempUser' -Action $action -Trigger $trigger `
+    Register-ScheduledTask -TaskName 'OPN-RemoveStaleProfiles' -Action $action -Trigger $trigger `
         -User 'SYSTEM' -RunLevel Highest -Force | Out-Null
-    Write-OPNLog "  conta '$TempUser' sera removida no proximo reinicio"
+    Write-OPNLog "  $($stale.Count) perfil(is) serao removidos no proximo reinicio (backup local em $backupRoot)"
+    Write-OPNLog "  ATENCAO: mova $backupRoot para o cofre/nuvem da TI e apague depois - fica so nesta maquina" 'WARN'
 }
 
 Export-ModuleMember -Function Set-OPNLocalAdmin, Set-OPNComputerName, Set-OPNPower,
-    Set-OPNLanguage, Set-OPNExplorerDefaults, Remove-OPNTemporarySetupUser
+    Set-OPNLanguage, Set-OPNExplorerDefaults, New-OPNColaboradorAccount, Remove-OPNStaleProfiles

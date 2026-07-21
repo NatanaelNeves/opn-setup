@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 1.0.4
+- Novo `New-OPNUser.ps1`: separa o fluxo em **Preparo** (`OPN-Setup.ps1`, não cria
+  conta de colaborador — na hora do preparo a TI geralmente ainda não sabe quem vai
+  receber a máquina) e **Entrega** (`New-OPNUser.ps1`, rodado depois, quando já se
+  sabe). Fica disponível em `C:\OPN\Repository\New-OPNUser.ps1` assim que o preparo
+  copia o repositório para a máquina.
+- `New-OPNUser.ps1` pergunta nome completo, usuário e se é administrador; cria a
+  conta local do colaborador com senha temporária forçada a trocar no 1º login, e
+  agenda a remoção, no próximo boot, de QUALQUER outro perfil que tenha sobrado
+  (conta temporária do preparo, aluno/usuário anterior etc.), inclusive o que está
+  rodando o comando agora — com backup local prévio de Desktop/Documentos/Imagens em
+  `C:\OPN\ProfileBackups\` (não há OneDrive automático sem `tenantId` para proteger
+  esses arquivos).
+- Removidos os campos `organization.temporarySetupUser` e `removeTemporarySetupUser`
+  do settings.json — não fazem mais falta, a limpeza agora é automática e cobre
+  qualquer perfil, não só um nome fixo configurado antes.
+- `Set-OPNStandardUsers` não precisa mais do parâmetro de conta temporária: mantém
+  como admin, além da conta da TI, quem estiver rodando o script no momento (será
+  removido de qualquer forma no próximo boot pela limpeza de perfis, se não for o
+  colaborador informado em `New-OPNUser.ps1`).
+
 ## 1.0.3
 - "Idioma e região" não aborta mais tudo se um item falhar isoladamente (ex.: fuso
   horário ausente em imagens de Windows reduzidas) — cada item agora loga aviso e

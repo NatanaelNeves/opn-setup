@@ -7,6 +7,10 @@
 .PARAMETER ComputerName    Nome no padrao OPN-UF-CODIGO.
 .PARAMETER AdminPassword   Senha padrao da TI (SecureString). Se omitida, e solicitada.
 .PARAMETER MaintenanceMode Execucao silenciosa (usada pela tarefa agendada).
+.NOTES
+  So prepara a maquina (Fase 1) - nao cria conta de colaborador nem mexe em perfis
+  existentes, porque nesse momento a TI ainda nao sabe quem vai receber a maquina.
+  Quando souber, rode New-OPNUser.ps1 (Fase 2 - entrega) a partir do repositorio local.
 .EXAMPLE
   .\OPN-Setup.ps1 -ComputerName OPN-CE-PGG1
   .\OPN-Setup.ps1 -MaintenanceMode
@@ -97,8 +101,7 @@ if ($Cfg.bitlocker.enabled) {
 }
 if ($Cfg.security.removeUsersFromAdministrators) {
     Invoke-OPNStep 'Usuarios rebaixados a padrao' {
-        Set-OPNStandardUsers -Security $Cfg.security -AdminAccount $O.adminAccount `
-            -TemporarySetupUser $O.temporarySetupUser
+        Set-OPNStandardUsers -Security $Cfg.security -AdminAccount $O.adminAccount
     }
 }
 Invoke-OPNStep 'Repositorio local' {
@@ -114,18 +117,13 @@ if ($Cfg.inventory.enabled) {
         $null = Save-OPNInventory -Inventory $Cfg.inventory -LogPath $Cfg.logging.path
     }
 }
-# Conta temporaria de setup: agenda remocao para o proximo boot (nunca em manutencao).
-if (-not $MaintenanceMode -and $O.removeTemporarySetupUser -and $O.temporarySetupUser) {
-    Invoke-OPNStep 'Agendar remocao da conta temporaria' {
-        Remove-OPNTemporarySetupUser -TempUser $O.temporarySetupUser -AdminAccount $O.adminAccount
-    }
-}
-
 if ($Cfg.deployment.generateReport) { $null = Export-OPNReport -Path $Cfg.logging.path }
 if ($Cfg.maintenance.generateHeartbeat) { Send-OPNHeartbeat -Inventory $Cfg.inventory -Url $Cfg.maintenance.heartbeatUrl }
 
 if (-not $MaintenanceMode) {
-    Write-OPNLog 'CONCLUIDO. Reinicie a maquina para aplicar nome, politicas e remover conta temporaria.'
+    Write-OPNLog 'CONCLUIDO. Reinicie a maquina para aplicar nome e politicas.'
+    Write-OPNLog 'Preparo (Fase 1) terminado. Quando souber quem vai receber a maquina,'
+    Write-OPNLog 'rode C:\OPN\Repository\New-OPNUser.ps1 (Fase 2 - entrega).'
     Write-OPNLog 'Checklist: docs\CHECKLIST-entrega.md'
     if ($Cfg.deployment.rebootAfterDeployment) {
         Write-OPNLog 'Reiniciando em 30s (rebootAfterDeployment=true)...'

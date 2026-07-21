@@ -13,7 +13,10 @@ diária autônoma. Sem Intune/SCCM/AD — só ferramentas nativas e gratuitas.
 3. `assets/` → wallpaper.png, lockscreen.png.
 4. Publique num GitHub **público** (não há segredos; a senha do admin nunca vai ao repo).
 
-## Preparar uma máquina
+## Preparar uma máquina (Preparo)
+Na hora do preparo a TI geralmente ainda não sabe quem vai receber a máquina — por
+isso o preparo **não cria conta de colaborador**, só deixa a máquina pronta.
+
 PowerShell **como Administrador**:
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -24,14 +27,34 @@ Com nome:
 $b = irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
 & ([scriptblock]::Create($b)) -ComputerName OPN-CE-PGG1
 ```
-O setup pede a **senha padrão da TI** do `opn-admin`, faz tudo e gera
-`C:\OPN\Logs\setup-report.json`. **Reinicie ao final.**
+O setup pede o **nome da máquina** e a **senha padrão da TI**, cria a conta
+`opn-admin`, instala/configura tudo e gera `C:\OPN\Logs\setup-report.json`.
+**Reinicie ao final** para aplicar nome e políticas.
 
 ### OOBE por edição
-- **Pro:** "Configurar para trabalho/escola" → conta M365 do colaborador (Entra Join).
+- **Pro:** "Configurar para trabalho/escola" → conta M365 do colaborador (Entra Join);
+  essa conta já existe quando o setup roda, não precisa criar nada na entrega.
 - **Home:** `Shift+F10` → `start ms-cxh:localonly` (builds antigos: `oobe\bypassnro`)
-  → conta local (ex.: `setup-temp`). Se usar conta temporária, informe o nome dela em
-  `organization.temporarySetupUser` para o setup agendar a remoção no próximo boot.
+  → qualquer conta local temporária (ex.: `setup-temp`). Ela é removida
+  automaticamente na entrega (próxima seção), não precisa fazer nada agora.
+- **Máquina já usada antes** (laboratório/sala, com contas de outras pessoas): pode
+  logar direto numa das contas existentes e rodar o preparo a partir dela — também
+  será removida na entrega.
+
+## Entregar a máquina a alguém (Entrega)
+Quando já se sabe quem vai receber a máquina, no mesmo PowerShell como Administrador:
+```powershell
+cd C:\OPN\Repository
+.\New-OPNUser.ps1
+```
+Pede **nome completo**, **usuário** (ex.: `maria.silva`) e se é administrador
+(normalmente não). Cria a conta local do colaborador (usuário padrão, senha
+temporária com troca obrigatória no 1º login) e agenda a remoção, no próximo boot, de
+**qualquer outro perfil** que tenha sobrado — conta temporária do OOBE, contas de
+alunos/usuários anteriores etc., inclusive a que está rodando o comando agora. Antes
+de apagar, copia Desktop/Documentos/Imagens de cada perfil removido para
+`C:\OPN\ProfileBackups\` (mova para o cofre da TI depois: sem `organization.tenantId`
+não há backup automático via OneDrive). **Reinicie ao final.**
 
 ## Política de senha do admin (senha única da frota)
 Decisão da OPN: **uma senha padrão** para o `opn-admin` em toda a frota

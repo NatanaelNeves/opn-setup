@@ -46,12 +46,14 @@ function Invoke-OPNStep {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][scriptblock]$Action)
     try {
         Write-OPNLog ">> $Name"
-        & $Action
+        $result = & $Action
         $script:StepResults[$Name] = 'OK'
         Write-OPNLog "OK $Name"
+        return $result
     } catch {
         $script:StepResults[$Name] = "ERRO: $($_.Exception.Message)"
         Write-OPNLog "FALHA em '$Name': $($_.Exception.Message)" 'ERROR'
+        return $null
     }
 }
 
