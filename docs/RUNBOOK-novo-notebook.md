@@ -17,7 +17,7 @@ Redefinir este PC > Remover tudo.
 PowerShell **como Administrador**:
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
-irm https://raw.githubusercontent.com/SUA-ORG/opn-setup/main/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
 ```
 Informe nome `OPN-UF-NNNN` e a senha padrão da TI quando solicitado.
 Revise `C:\OPN\Logs\setup-report.json`.

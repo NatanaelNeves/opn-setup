@@ -17,11 +17,11 @@ diária autônoma. Sem Intune/SCCM/AD — só ferramentas nativas e gratuitas.
 PowerShell **como Administrador**:
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
-irm https://raw.githubusercontent.com/SUA-ORG/opn-setup/main/bootstrap.ps1 | iex
+irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
 ```
 Com nome:
 ```powershell
-$b = irm https://raw.githubusercontent.com/SUA-ORG/opn-setup/main/bootstrap.ps1
+$b = irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
 & ([scriptblock]::Create($b)) -ComputerName OPN-CE-0042
 ```
 O setup pede a **senha padrão da TI** do `opn-admin`, faz tudo e gera

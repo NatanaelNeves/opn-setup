@@ -15,8 +15,8 @@
   },
 
   "repository": {
-    "rawBase": "",
-    "zipUrl": "",
+    "rawBase": "https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main",
+    "zipUrl": "https://codeload.github.com/NatanaelNeves/opn-setup/zip/refs/heads/main",
     "branch": "main",
     "localRepository": "C:\\OPN\\Repository",
     "cache": "C:\\OPN\\Cache"

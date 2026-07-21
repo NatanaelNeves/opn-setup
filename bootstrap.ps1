@@ -5,16 +5,15 @@
   Baixa o pacote atual do repositorio, extrai para C:\OPN\Repository e executa o setup.
   PowerShell como Administrador:
     Set-ExecutionPolicy Bypass -Scope Process -Force
-    irm https://raw.githubusercontent.com/SUA-ORG/opn-setup/main/bootstrap.ps1 | iex
+    irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
   Com parametros:
-    $b = irm https://raw.githubusercontent.com/SUA-ORG/opn-setup/main/bootstrap.ps1
+    $b = irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1
     & ([scriptblock]::Create($b)) -ComputerName OPN-CE-0042
 #>
 param([string]$ComputerName)
 $ErrorActionPreference = 'Stop'
 
-# AJUSTE estas duas URLs (devem casar com repository.zipUrl do settings.json):
-$ZipUrl = 'https://codeload.github.com/SUA-ORG/opn-setup/zip/refs/heads/main'
+$ZipUrl = 'https://codeload.github.com/NatanaelNeves/opn-setup/zip/refs/heads/main'
 $Repo   = 'C:\OPN\Repository'
 
 Write-Host '== OPN Bootstrap: baixando pacote...' -ForegroundColor Cyan
