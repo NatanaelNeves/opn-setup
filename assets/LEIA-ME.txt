@@ -1,0 +1,5 @@
+Coloque nesta pasta ANTES de publicar o repositorio:
+
+1. wallpaper.png   -> papel de parede institucional (>=1920x1080)
+2. lockscreen.png  -> tela de bloqueio
+3. logo.png        -> logotipo (uso futuro)

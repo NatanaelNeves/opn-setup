@@ -1,0 +1,182 @@
+{
+  "version": "1.0.1",
+
+  "organization": {
+    "name": "O Pequeno Nazareno",
+    "shortName": "OPN",
+    "computerPrefix": "OPN",
+    "computerPattern": "^OPN-[A-Z]{2}-\\d{4}$",
+    "tenantId": "",
+    "domain": "",
+    "adminAccount": "opn-admin",
+    "generateRandomAdminPassword": false,
+    "removeTemporarySetupUser": true,
+    "temporarySetupUser": ""
+  },
+
+  "repository": {
+    "rawBase": "",
+    "zipUrl": "",
+    "branch": "main",
+    "localRepository": "C:\\OPN\\Repository",
+    "cache": "C:\\OPN\\Cache"
+  },
+
+  "deployment": {
+    "createLocalAdmin": true,
+    "renameComputer": true,
+    "askComputerName": true,
+    "rebootAfterDeployment": false,
+    "generateReport": true,
+    "enableMaintenance": true
+  },
+
+  "applications": {
+    "required": [
+      "Google.Chrome",
+      "Microsoft.Teams",
+      "TheDocumentFoundation.LibreOffice",
+      "Adobe.Acrobat.Reader.64-bit",
+      "7zip.7zip",
+      "AnyDesk.AnyDesk"
+    ],
+    "optional": [
+      "Microsoft.PowerToys",
+      "VideoLAN.VLC"
+    ],
+    "perMachine": {},
+    "removeWinget": [
+      "SpotifyAB.SpotifyMusic"
+    ],
+    "removeAppx": [
+      "Microsoft.XboxApp",
+      "Microsoft.XboxGamingOverlay",
+      "Microsoft.XboxGameOverlay",
+      "Microsoft.GetHelp",
+      "Microsoft.Getstarted",
+      "Microsoft.People",
+      "Microsoft.BingNews",
+      "Microsoft.BingWeather",
+      "Microsoft.ZuneMusic",
+      "Microsoft.ZuneVideo",
+      "Clipchamp.Clipchamp",
+      "Microsoft.MicrosoftSolitaireCollection"
+    ]
+  },
+
+  "branding": {
+    "enabled": true,
+    "wallpaper": "assets\\wallpaper.png",
+    "lockscreen": "assets\\lockscreen.png",
+    "companyLogo": "assets\\logo.png"
+  },
+
+  "explorer": {
+    "showFileExtensions": true,
+    "showHiddenFiles": false,
+    "openThisPC": true,
+    "disableWidgets": true,
+    "disableChat": true,
+    "disableCopilot": true
+  },
+
+  "power": {
+    "powerPlan": "Balanced",
+    "sleepACMinutes": 30,
+    "sleepBatteryMinutes": 15,
+    "monitorACMinutes": 15,
+    "monitorBatteryMinutes": 5,
+    "hibernate": true,
+    "lidCloseAction": "Sleep"
+  },
+
+  "windows": {
+    "configureLanguage": true,
+    "language": "pt-BR",
+    "timeZone": "E. South America Standard Time",
+    "configureExplorer": true,
+    "configureWindowsUpdate": true,
+    "configureSmartScreen": true,
+    "disableConsumerExperience": true,
+    "disableSuggestions": true
+  },
+
+  "onedrive": {
+    "enabled": true,
+    "silentLogin": true,
+    "enableKnownFolderMove": true,
+    "blockOptOut": true,
+    "filesOnDemand": true,
+    "blockPersonalOneDrive": true
+  },
+
+  "bitlocker": {
+    "enabled": true,
+    "skipOnWindowsHome": true,
+    "backupRecoveryKey": true
+  },
+
+  "drivers": {
+    "detectManufacturer": true,
+    "hp": true,
+    "dell": true,
+    "lenovo": true
+  },
+
+  "security": {
+    "removeUsersFromAdministrators": true,
+    "enableUAC": true,
+    "enableDefender": true,
+    "enableFirewall": true,
+    "enableCredentialGuard": false,
+    "enableMemoryIntegrity": false,
+    "enableControlledFolderAccess": false,
+    "enableExploitProtection": true
+  },
+
+  "restrictions": {
+    "blockWallpaperChange": true,
+    "blockControlPanel": false,
+    "blockRegistryEditor": true,
+    "blockCMD": false,
+    "blockPowerShell": false,
+    "blockPersonalMicrosoftAccounts": true,
+    "settingsPagesVisible": "showonly:display;bluetooth;printers;network-wifi;network-status;sound;windowsupdate"
+  },
+
+  "maintenance": {
+    "enabled": true,
+    "dailyTime": "12:30",
+    "runAtStartup": true,
+    "updateScripts": true,
+    "upgradeWingetPackages": true,
+    "reapplyPolicies": true,
+    "generateHeartbeat": true,
+    "heartbeatUrl": ""
+  },
+
+  "inventory": {
+    "enabled": true,
+    "collectHardware": true,
+    "collectSoftware": true,
+    "collectBitLocker": true,
+    "collectWindowsVersion": true,
+    "collectInstalledApps": true,
+    "sendToSharePoint": false,
+    "sharePointUrl": ""
+  },
+
+  "logging": {
+    "enabled": true,
+    "path": "C:\\OPN\\Logs",
+    "format": "json",
+    "keepDays": 90
+  },
+
+  "updates": {
+    "channel": "stable",
+    "checkForUpdates": true,
+    "allowRollback": true,
+    "autoDownload": true
+  }
+}
