@@ -31,6 +31,8 @@ A manutenção diária reaplica políticas e branding. Forçar agora:
 Bloquear conta M365 no dia; na devolução, Redefinir este PC > Remover tudo e reimplantar.
 
 ## Máquina passa para outro colaborador (sem reinstalar)
-Logue como `opn-admin`, va em `C:\OPN\Repository` e rode `.\New-OPNUser.ps1` de novo
-com o nome da nova pessoa. A conta anterior (e qualquer outra que tenha sobrado) e
-removida no proximo boot, com backup local previo em `C:\OPN\ProfileBackups\`.
+A conta local não é pessoal, é da máquina (mesmo nome, ex.: `OPN-CE-PGG1`). Logue
+como `opn-admin` e troque a senha dela: `net user OPN-CE-PGG1 "NovaSenhaInicial"` +
+marque para trocar no próximo login (`Set-LocalUser` ou `net user ... /logonpasswordchg:yes`
+via `[adsi]`). Antes de entregar, mova os arquivos locais do colaborador anterior
+(Desktop/Documentos) para o cofre/nuvem, já que a conta continua sendo usada.

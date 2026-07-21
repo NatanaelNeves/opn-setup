@@ -1,5 +1,5 @@
-# OPN.System.psm1 - Conta admin (senha unica), nome, energia, idioma, Explorer,
-# conta do colaborador e limpeza de perfis antigos.
+# OPN.System.psm1 - Conta admin (senha unica), nome + conta padrao do usuario,
+# energia, idioma, Explorer, limpeza de perfis antigos.
 
 function Set-OPNLocalAdmin {
     param(
@@ -31,15 +31,18 @@ function Set-OPNLocalAdmin {
 }
 
 function Set-OPNComputerName {
+    # Retorna o nome resolvido (ou $null se pulado) para tambem virar o nome da
+    # conta padrao do usuario (New-OPNStandardUser) - um so nome perguntado, dois usos.
     param([string]$Name, [Parameter(Mandatory)][string]$Pattern,
           [bool]$Ask = $true, [switch]$NonInteractive)
-    if ($NonInteractive) { return }
+    if ($NonInteractive) { return $null }
     if (-not $Name -and $Ask) { $Name = Read-Host 'Nome da maquina (ex.: OPN-CE-PGG1)' }
-    if (-not $Name) { Write-OPNLog '  nome nao informado - etapa pulada' 'WARN'; return }
+    if (-not $Name) { Write-OPNLog '  nome nao informado - etapa pulada' 'WARN'; return $null }
     if ($Name -notmatch $Pattern) { throw "nome '$Name' fora do padrao OPN-UF-CODIGO" }
-    if ($env:COMPUTERNAME -ieq $Name) { Write-OPNLog '  nome ja correto'; return }
+    if ($env:COMPUTERNAME -ieq $Name) { Write-OPNLog '  nome ja correto'; return $Name }
     Rename-Computer -NewName $Name -Force
     Write-OPNLog '  nome sera aplicado no proximo reinicio'
+    return $Name
 }
 
 function Set-OPNPower {
@@ -96,32 +99,29 @@ function Set-OPNExplorerDefaults {
     }
 }
 
-function New-OPNColaboradorAccount {
-    # Cria a conta local de quem vai usar esta maquina (Fase 2 - entrega, via
-    # New-OPNUser.ps1). Nao roda como parte do preparo (Fase 1: OPN-Setup.ps1),
-    # porque nesse momento a TI ainda nao sabe quem vai receber a maquina.
-    param(
-        [Parameter(Mandatory)][string]$UserName,
-        [string]$FullName,
-        [switch]$IsAdmin
-    )
+function New-OPNStandardUser {
+    # Conta padrao de quem vai usar esta maquina. Sem Intune/Entra Join, o Windows
+    # nao cria essa conta sozinho a partir da conta M365 - o setup cria na hora, com
+    # o mesmo nome da maquina (nao e uma conta pessoal por colaborador, e a conta
+    # padrao desta maquina - simples de padronizar em varias maquinas).
+    param([Parameter(Mandatory)][string]$UserName)
     if (Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue) {
-        throw "conta '$UserName' ja existe"
+        Write-OPNLog "  conta '$UserName' ja existe - mantida"
+        return
     }
     $tempPwd = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 14 | ForEach-Object { [char]$_ })
     $sec = ConvertTo-SecureString $tempPwd -AsPlainText -Force
-    $desc = if ($FullName) { "Colaborador OPN - $FullName" } else { 'Colaborador - conta padrao OPN' }
-    $params = @{ Name = $UserName; Password = $sec; Description = $desc; AccountNeverExpires = $true }
-    if ($FullName) { $params['FullName'] = $FullName }
-    New-LocalUser @params | Out-Null
-    if ($IsAdmin) { Add-LocalGroupMember -Group (Get-OPNAdminGroup) -Member $UserName }
+    New-LocalUser -Name $UserName -Password $sec -Description 'Usuario padrao OPN' -AccountNeverExpires | Out-Null
     try {
         $obj = [adsi]"WinNT://$env:COMPUTERNAME/$UserName,user"
         $obj.PasswordExpired = 1
         $obj.SetInfo()
     } catch { Write-OPNLog "  nao marcou troca de senha obrigatoria: $($_.Exception.Message)" 'WARN' }
-    Write-OPNLog "  conta '$UserName' criada (usuario $(if($IsAdmin){'administrador'}else{'padrao'}))"
-    [pscustomobject]@{ UserName = $UserName; TempPassword = $tempPwd }
+    $out = 'C:\OPN\Logs\usuario-senha-inicial.txt'
+    New-Item (Split-Path $out) -ItemType Directory -Force | Out-Null
+    "Maquina: $env:COMPUTERNAME`nUsuario: $UserName`nSenha inicial: $tempPwd`n(trocada obrigatoriamente no 1o login)" |
+        Set-Content $out
+    Write-OPNLog "  conta '$UserName' criada (usuario padrao). Senha inicial em $out - repasse ao colaborador e apague o arquivo" 'WARN'
 }
 
 function Remove-OPNStaleProfiles {
@@ -162,4 +162,4 @@ function Remove-OPNStaleProfiles {
 }
 
 Export-ModuleMember -Function Set-OPNLocalAdmin, Set-OPNComputerName, Set-OPNPower,
-    Set-OPNLanguage, Set-OPNExplorerDefaults, New-OPNColaboradorAccount, Remove-OPNStaleProfiles
+    Set-OPNLanguage, Set-OPNExplorerDefaults, New-OPNStandardUser, Remove-OPNStaleProfiles

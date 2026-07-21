@@ -4,13 +4,12 @@
 .DESCRIPTION
   Le config\settings.json, detecta a edicao e executa todos os modulos.
   Idempotente: pode rodar varias vezes; reutilizado pela manutencao diaria.
-.PARAMETER ComputerName    Nome no padrao OPN-UF-CODIGO.
+.PARAMETER ComputerName    Nome no padrao OPN-UF-CODIGO. Tambem vira o nome da conta
+                           padrao do usuario (ex.: maquina OPN-CE-0003 -> usuario
+                           OPN-CE-0003) - sem Intune/Entra Join o Windows nao cria
+                           essa conta sozinho a partir da conta M365.
 .PARAMETER AdminPassword   Senha padrao da TI (SecureString). Se omitida, e solicitada.
 .PARAMETER MaintenanceMode Execucao silenciosa (usada pela tarefa agendada).
-.NOTES
-  So prepara a maquina (Fase 1) - nao cria conta de colaborador nem mexe em perfis
-  existentes, porque nesse momento a TI ainda nao sabe quem vai receber a maquina.
-  Quando souber, rode New-OPNUser.ps1 (Fase 2 - entrega) a partir do repositorio local.
 .EXAMPLE
   .\OPN-Setup.ps1 -ComputerName OPN-CE-PGG1
   .\OPN-Setup.ps1 -MaintenanceMode
@@ -45,10 +44,16 @@ if ($Cfg.deployment.createLocalAdmin) {
         Set-OPNLocalAdmin -UserName $O.adminAccount -Password $AdminPassword -NonInteractive:$MaintenanceMode
     }
 }
+$MachineName = $null
 if ($Cfg.deployment.renameComputer) {
-    Invoke-OPNStep 'Nome do computador' {
+    $MachineName = Invoke-OPNStep 'Nome do computador' {
         Set-OPNComputerName -Name $ComputerName -Pattern $O.computerPattern `
             -Ask ([bool]$Cfg.deployment.askComputerName) -NonInteractive:$MaintenanceMode
+    }
+}
+if ($MachineName -and -not $MaintenanceMode) {
+    Invoke-OPNStep 'Conta padrao do usuario' {
+        New-OPNStandardUser -UserName $MachineName
     }
 }
 Invoke-OPNStep 'Remocao de bloatware' {
@@ -117,13 +122,20 @@ if ($Cfg.inventory.enabled) {
         $null = Save-OPNInventory -Inventory $Cfg.inventory -LogPath $Cfg.logging.path
     }
 }
+# Padronizacao: qualquer perfil que nao seja a conta da TI nem a conta padrao do
+# usuario (inclusive a conta temporaria usada para rodar este script) e agendado
+# para remocao no proximo boot.
+if (-not $MaintenanceMode) {
+    Invoke-OPNStep 'Limpeza de perfis antigos' {
+        Remove-OPNStaleProfiles -AdminAccount $O.adminAccount -KeepUser $MachineName
+    }
+}
+
 if ($Cfg.deployment.generateReport) { $null = Export-OPNReport -Path $Cfg.logging.path }
 if ($Cfg.maintenance.generateHeartbeat) { Send-OPNHeartbeat -Inventory $Cfg.inventory -Url $Cfg.maintenance.heartbeatUrl }
 
 if (-not $MaintenanceMode) {
-    Write-OPNLog 'CONCLUIDO. Reinicie a maquina para aplicar nome e politicas.'
-    Write-OPNLog 'Preparo (Fase 1) terminado. Quando souber quem vai receber a maquina,'
-    Write-OPNLog 'rode C:\OPN\Repository\New-OPNUser.ps1 (Fase 2 - entrega).'
+    Write-OPNLog 'CONCLUIDO. Reinicie a maquina para aplicar nome, politicas e remover perfis antigos.'
     Write-OPNLog 'Checklist: docs\CHECKLIST-entrega.md'
     if ($Cfg.deployment.rebootAfterDeployment) {
         Write-OPNLog 'Reiniciando em 30s (rebootAfterDeployment=true)...'

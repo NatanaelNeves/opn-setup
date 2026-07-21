@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 1.0.5
+- Revisão do 1.0.4: removido `New-OPNUser.ps1` e o fluxo em duas etapas. Voltou a
+  ser um comando só (`OPN-Setup.ps1`) — mas agora ele já cria a conta padrão do
+  usuário sozinho, sem perguntar nome de colaborador: usa o **mesmo nome da
+  máquina** como nome de usuário (ex.: máquina `OPN-CE-0003` → usuário
+  `OPN-CE-0003`). Simplifica porque a conta não é pessoal, é da máquina.
+- `Set-OPNComputerName` agora retorna o nome resolvido, reaproveitado por
+  `New-OPNStandardUser` (renomeada de `New-OPNColaboradorAccount`) para criar essa
+  conta com senha inicial gerada (troca obrigatória no 1º login, salva em
+  `C:\OPN\Logs\usuario-senha-inicial.txt`).
+- A limpeza de perfis antigos (`Remove-OPNStaleProfiles`) volta a rodar dentro do
+  próprio `OPN-Setup.ps1`, no fim da execução, mantendo `opn-admin` e a conta da
+  máquina, exatamente como antes.
+
 ## 1.0.4
 - Novo `New-OPNUser.ps1`: separa o fluxo em **Preparo** (`OPN-Setup.ps1`, não cria
   conta de colaborador — na hora do preparo a TI geralmente ainda não sabe quem vai

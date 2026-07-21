@@ -1,59 +1,46 @@
 # Runbook — Preparação de notebook
 
 Tempo: 40–90 min (~15 min de interação). Requisitos: rede, senha padrão da TI,
-acesso ao cofre. Em duas etapas: **Preparo** (não precisa saber quem vai receber a
-máquina) e **Entrega** (quando já se sabe).
+acesso ao cofre.
 
-## Preparo
-
-### 1. Base
+## 1. Base
 Novo: Windows de fábrica. Usado: Configurações > Sistema > Recuperação >
 Redefinir este PC > Remover tudo.
 
-### 2. OOBE
-- **Pro:** "Configurar para trabalho ou escola" → conta M365 do colaborador (essa
-  conta já existe quando o setup roda; nada a fazer na entrega).
+## 2. OOBE
+- **Pro:** "Configurar para trabalho ou escola" → conta M365 do colaborador.
 - **Home:** tela de rede → `Shift+F10` → `start ms-cxh:localonly` → qualquer conta
-  local temporária (ex.: `setup-temp`). Não precisa registrar nada — é removida
-  automaticamente na entrega.
+  local temporária (ex.: `setup-temp`) só para rodar o setup. Não precisa registrar
+  nada — é removida automaticamente no próximo boot.
 - **Máquina já usada antes** (laboratório/sala, com contas antigas de outras
-  pessoas): pode logar direto numa dessas contas existentes e rodar o preparo a
-  partir dela — também será removida na entrega.
+  pessoas): pode logar direto numa dessas contas existentes e rodar o setup a
+  partir dela — também será removida no próximo boot.
 
-### 3. Setup
+## 3. Setup
 PowerShell **como Administrador**:
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
 irm https://raw.githubusercontent.com/NatanaelNeves/opn-setup/main/bootstrap.ps1 | iex
 ```
 Informe nome `OPN-UF-CÓDIGO` (ex.: `OPN-CE-PGG1`) e a senha padrão da TI quando
-solicitado. Revise `C:\OPN\Logs\setup-report.json`. Reinicie ao final.
+solicitado. Revise `C:\OPN\Logs\setup-report.json`.
 
-## Entrega
-Quando já se sabe quem vai receber a máquina:
+O setup cria `opn-admin` (TI) e uma conta local **usuário padrão com o mesmo nome
+da máquina** (ex.: `OPN-CE-PGG1`) — é essa conta que o colaborador vai usar.
 
-### 4. Criar a conta do colaborador
-PowerShell **como Administrador**:
-```powershell
-cd C:\OPN\Repository
-.\New-OPNUser.ps1
-```
-Informe nome completo, usuário (ex.: `maria.silva`) e se é administrador
-(normalmente não). Isso cria a conta dele e agenda a remoção de qualquer outro
-perfil que tenha sobrado (conta temporária do preparo, contas antigas de outras
-pessoas etc.) para o próximo boot.
-
-### 5. Pós-entrega
-- Reiniciar (remove os perfis antigos e conclui a limpeza).
-- Repassar a senha temporária do colaborador (também salva em
-  `C:\OPN\Logs\colaborador-senha-temp.txt`, trocada obrigatoriamente no 1º login) e,
-  no caso Pro, ele entra com a conta M365 no OneDrive/Office/Teams. **Apagar esse
-  arquivo depois de repassar a senha.**
+## 4. Pós-setup
+- Reiniciar (aplica nome, políticas e remove qualquer perfil que não seja
+  `opn-admin` nem a conta da máquina — inclusive a conta temporária usada para
+  rodar o setup e contas antigas de outras pessoas).
+- Repassar a senha inicial da conta (`C:\OPN\Logs\usuario-senha-inicial.txt`,
+  trocada obrigatoriamente no 1º login) e, no caso Pro, o colaborador entra com a
+  conta M365 no OneDrive/Office/Teams. **Apagar esse arquivo depois de repassar a
+  senha.**
 - Se algum perfil antigo foi removido, mover `C:\OPN\ProfileBackups\` (arquivos que
   pertenciam a essas contas) para o cofre da TI e só então apagar da máquina.
 - Colar etiqueta física com o nome.
 
-### 6. Registro
+## 5. Entrega
 Preencher CHECKLIST-entrega.md, registrar no inventário, colher assinatura do termo.
 
 ## Problemas comuns
